@@ -153,6 +153,8 @@ func TestNewDefaultConfig(t *testing.T) {
 	assert.NoError(t, cfg.SetGoPath())
 	require.NoError(t, cfg.Validate())
 	assert.False(t, cfg.Distribution.DebugCompilation)
+	assert.Empty(t, cfg.LDFlags)
+	assert.Empty(t, cfg.GCFlags)
 	assert.Empty(t, cfg.Distribution.BuildTags)
 }
 

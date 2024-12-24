@@ -109,19 +109,32 @@ func Compile(cfg Config) error {
 		return nil
 	}
 
-	cfg.Logger.Info("Compiling")
 
-	var ldflags = "-s -w"
+	cfg.Logger.Info("Compiling")
+	cfg.Logger.Info("distrubtion", zap.Any("distro", cfg.Distribution))
+
+	var ldflags = "-s -w" // we strip the symbols by default for smaller binaries
+	var gcflags = ""
 
 	args := []string{"build", "-trimpath", "-o", cfg.Distribution.Name}
 	if cfg.Distribution.DebugCompilation {
 		cfg.Logger.Info("Debug compilation is enabled, the debug symbols will be left on the resulting binary")
 		ldflags = cfg.LDFlags
-		args = append(args, "-gcflags=all=-N -l")
-	} else if len(cfg.LDFlags) > 0 {
-		ldflags += " " + cfg.LDFlags
+		gcflags = "all=-N -l"
+	} else {
+		if len(cfg.LDFlags) > 0 {
+			cfg.Logger.Info("Using custom ldflags", zap.String("ldflags", cfg.LDFlags))
+			ldflags = cfg.LDFlags
+		}
+		if len(cfg.GCFlags) > 0 {
+			cfg.Logger.Info("Using custom gcflags", zap.String("gcflags", cfg.GCFlags))
+			gcflags = cfg.GCFlags
+		}
 	}
 	args = append(args, "-ldflags="+ldflags)
+	args = append(args, "-gcflags="+gcflags)
+
+
 	if cfg.Distribution.BuildTags != "" {
 		args = append(args, "-tags", cfg.Distribution.BuildTags)
 	}
@@ -130,6 +143,7 @@ func Compile(cfg Config) error {
 	}
 	cfg.Logger.Info("Compiled", zap.String("binary", fmt.Sprintf("%s/%s", cfg.Distribution.OutputPath, cfg.Distribution.Name)))
 
+	cfg.Logger.Info("arg", zap.Any("arguments", args))
 	return nil
 }
 
