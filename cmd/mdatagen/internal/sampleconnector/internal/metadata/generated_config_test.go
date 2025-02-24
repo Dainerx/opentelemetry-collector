@@ -13,6 +13,79 @@ import (
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
+func TestMetricsBuilderConfig(t *testing.T) {
+	tests := []struct {
+		name string
+		want MetricsBuilderConfig
+	}{
+		{
+			name: "default",
+			want: DefaultMetricsBuilderConfig(),
+		},
+		{
+			name: "all_set",
+			want: MetricsBuilderConfig{
+				Metrics: MetricsConfig{
+					DefaultMetric:            MetricConfig{Enabled: true},
+					DefaultMetricToBeRemoved: MetricConfig{Enabled: true},
+					MetricInputType:          MetricConfig{Enabled: true},
+					OptionalMetric:           MetricConfig{Enabled: true},
+					OptionalMetricEmptyUnit:  MetricConfig{Enabled: true},
+				},
+				ResourceAttributes: ResourceAttributesConfig{
+					MapResourceAttr:                  ResourceAttributeConfig{Enabled: true},
+					OptionalResourceAttr:             ResourceAttributeConfig{Enabled: true},
+					SliceResourceAttr:                ResourceAttributeConfig{Enabled: true},
+					StringEnumResourceAttr:           ResourceAttributeConfig{Enabled: true},
+					StringResourceAttr:               ResourceAttributeConfig{Enabled: true},
+					StringResourceAttrDisableWarning: ResourceAttributeConfig{Enabled: true},
+					StringResourceAttrRemoveWarning:  ResourceAttributeConfig{Enabled: true},
+					StringResourceAttrToBeRemoved:    ResourceAttributeConfig{Enabled: true},
+				},
+			},
+		},
+		{
+			name: "none_set",
+			want: MetricsBuilderConfig{
+				Metrics: MetricsConfig{
+					DefaultMetric:            MetricConfig{Enabled: false},
+					DefaultMetricToBeRemoved: MetricConfig{Enabled: false},
+					MetricInputType:          MetricConfig{Enabled: false},
+					OptionalMetric:           MetricConfig{Enabled: false},
+					OptionalMetricEmptyUnit:  MetricConfig{Enabled: false},
+				},
+				ResourceAttributes: ResourceAttributesConfig{
+					MapResourceAttr:                  ResourceAttributeConfig{Enabled: false},
+					OptionalResourceAttr:             ResourceAttributeConfig{Enabled: false},
+					SliceResourceAttr:                ResourceAttributeConfig{Enabled: false},
+					StringEnumResourceAttr:           ResourceAttributeConfig{Enabled: false},
+					StringResourceAttr:               ResourceAttributeConfig{Enabled: false},
+					StringResourceAttrDisableWarning: ResourceAttributeConfig{Enabled: false},
+					StringResourceAttrRemoveWarning:  ResourceAttributeConfig{Enabled: false},
+					StringResourceAttrToBeRemoved:    ResourceAttributeConfig{Enabled: false},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := loadMetricsBuilderConfig(t, tt.name)
+			diff := cmp.Diff(tt.want, cfg, cmpopts.IgnoreUnexported(MetricConfig{}, ResourceAttributeConfig{}))
+			require.Emptyf(t, diff, "Config mismatch (-expected +actual):\n%s", diff)
+		})
+	}
+}
+
+func loadMetricsBuilderConfig(t *testing.T, name string) MetricsBuilderConfig {
+	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config.yaml"))
+	require.NoError(t, err)
+	sub, err := cm.Sub(name)
+	require.NoError(t, err)
+	cfg := DefaultMetricsBuilderConfig()
+	require.NoError(t, sub.Unmarshal(&cfg))
+	return cfg
+}
+
 func TestResourceAttributesConfig(t *testing.T) {
 	tests := []struct {
 		name string

@@ -16,6 +16,7 @@ require (
 	go.opentelemetry.io/collector/consumer/consumertest v0.120.0
 	go.opentelemetry.io/collector/filter v0.120.0
 	go.opentelemetry.io/collector/pdata v1.26.0
+	go.opentelemetry.io/collector/pipeline v0.120.0
 	go.opentelemetry.io/collector/processor v0.120.0
 	go.opentelemetry.io/collector/processor/processortest v0.120.0
 	go.opentelemetry.io/collector/receiver v0.120.0
@@ -57,7 +58,6 @@ require (
 	go.opentelemetry.io/collector/internal/fanoutconsumer v0.120.0 // indirect
 	go.opentelemetry.io/collector/pdata/pprofile v0.120.0 // indirect
 	go.opentelemetry.io/collector/pdata/testdata v0.120.0 // indirect
-	go.opentelemetry.io/collector/pipeline v0.120.0 // indirect
 	go.opentelemetry.io/collector/pipeline/xpipeline v0.120.0 // indirect
 	go.opentelemetry.io/collector/processor/xprocessor v0.120.0 // indirect
 	go.opentelemetry.io/collector/receiver/xreceiver v0.120.0 // indirect

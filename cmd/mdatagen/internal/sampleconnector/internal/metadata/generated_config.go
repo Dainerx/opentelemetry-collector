@@ -4,11 +4,67 @@ package metadata
 
 import (
 	"go.opentelemetry.io/collector/confmap"
+	"go.opentelemetry.io/collector/filter"
 )
+
+// MetricConfig provides common config for a particular metric.
+type MetricConfig struct {
+	Enabled bool `mapstructure:"enabled"`
+
+	enabledSetByUser bool
+}
+
+func (ms *MetricConfig) Unmarshal(parser *confmap.Conf) error {
+	if parser == nil {
+		return nil
+	}
+	err := parser.Unmarshal(ms)
+	if err != nil {
+		return err
+	}
+	ms.enabledSetByUser = parser.IsSet("enabled")
+	return nil
+}
+
+// MetricsConfig provides config for sample metrics.
+type MetricsConfig struct {
+	DefaultMetric            MetricConfig `mapstructure:"default.metric"`
+	DefaultMetricToBeRemoved MetricConfig `mapstructure:"default.metric.to_be_removed"`
+	MetricInputType          MetricConfig `mapstructure:"metric.input_type"`
+	OptionalMetric           MetricConfig `mapstructure:"optional.metric"`
+	OptionalMetricEmptyUnit  MetricConfig `mapstructure:"optional.metric.empty_unit"`
+}
+
+func DefaultMetricsConfig() MetricsConfig {
+	return MetricsConfig{
+		DefaultMetric: MetricConfig{
+			Enabled: true,
+		},
+		DefaultMetricToBeRemoved: MetricConfig{
+			Enabled: true,
+		},
+		MetricInputType: MetricConfig{
+			Enabled: true,
+		},
+		OptionalMetric: MetricConfig{
+			Enabled: false,
+		},
+		OptionalMetricEmptyUnit: MetricConfig{
+			Enabled: false,
+		},
+	}
+}
 
 // ResourceAttributeConfig provides common config for a particular resource attribute.
 type ResourceAttributeConfig struct {
 	Enabled bool `mapstructure:"enabled"`
+	// Experimental: MetricsInclude defines a list of filters for attribute values.
+	// If the list is not empty, only metrics with matching resource attribute values will be emitted.
+	MetricsInclude []filter.Config `mapstructure:"metrics_include"`
+	// Experimental: MetricsExclude defines a list of filters for attribute values.
+	// If the list is not empty, metrics with matching resource attribute values will not be emitted.
+	// MetricsInclude has higher priority than MetricsExclude.
+	MetricsExclude []filter.Config `mapstructure:"metrics_exclude"`
 
 	enabledSetByUser bool
 }
@@ -63,5 +119,18 @@ func DefaultResourceAttributesConfig() ResourceAttributesConfig {
 		StringResourceAttrToBeRemoved: ResourceAttributeConfig{
 			Enabled: true,
 		},
+	}
+}
+
+// MetricsBuilderConfig is a configuration for sample metrics builder.
+type MetricsBuilderConfig struct {
+	Metrics            MetricsConfig            `mapstructure:"metrics"`
+	ResourceAttributes ResourceAttributesConfig `mapstructure:"resource_attributes"`
+}
+
+func DefaultMetricsBuilderConfig() MetricsBuilderConfig {
+	return MetricsBuilderConfig{
+		Metrics:            DefaultMetricsConfig(),
+		ResourceAttributes: DefaultResourceAttributesConfig(),
 	}
 }
